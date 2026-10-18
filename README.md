@@ -71,3 +71,12 @@ You'll want to write traces that specifically exercise: RAW chains (to stress re
 Simulation before RTL
 Before writing any Verilog/VHDL, implement a cycle-accurate software simulator of your pipeline in Python or C++. Feed it traces and verify ROB commit order, RS dispatch, and register rename behavior. This will save significant debugging time in RTL. SimpleScalar and gem5 source code are worth reading for how they model reservation station state machines, even if you don't use them directly.
 '''
+
+Notes on tools needed to run components:
+GTKWave and GHDL were used in synthesizing the test benches. The following are the commands needed to check
+output:
+ghdl -a --std=08 <component>.vhd <testbench_component>.vhd
+ghdl -e --std=08 <testbench_component>
+ghdl -r --std=08 <testbench_component> --wave=wave.ghw
+
+After issuing these commands, you'll receive a wave of output displaying results of test bench
