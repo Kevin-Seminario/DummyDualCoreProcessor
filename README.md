@@ -1,5 +1,5 @@
 # DummyDualCoreProcessor
-# Credit to Nate Williams (https://github.com/sizeru) for providing schematic to construct the traces
+# Credit to User (https://github.com/sizeru) for providing schematic to construct the traces
 This is a project outlining a simple structure for a CPU that uses two cores to simulate multi-threading behavior.
 
 This "dummy" processor will be fabricated to work on a DE-10 Nano FPGA with the system being provided no disk, and so will only operate on physical memory. We will be 
