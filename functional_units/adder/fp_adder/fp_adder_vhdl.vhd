@@ -16,16 +16,16 @@ entity fp_adder_vhdl is
 end entity fp_adder_vhdl;
 architecture rtl of fp_adder_vhdl is
 begin
-    fp_addition: process
-        variable temp_mantissa  : unsigned((M_VALUE) downto 0);
-        variable num1_mantissa  : unsigned((M_VALUE) downto 0);
-        variable num2_mantissa  : unsigned((M_VALUE) downto 0);
-        variable temp_exp       : unsigned((E_VALUE - 1) downto 0);
-        variable num1_exp       : unsigned((E_VALUE - 1) downto 0);
-        variable num2_exp       : unsigned((E_VALUE - 1) downto 0);
-        variable temp_sign      : std_logic;
-        variable num1_sign      : std_logic;
-        variable num2_sign      : std_logic;
+    fp_addition: process(all)
+        variable temp_mantissa  : unsigned((M_VALUE) downto 0) := (others => '0');
+        variable num1_mantissa  : unsigned((M_VALUE) downto 0) := (others => '0');
+        variable num2_mantissa  : unsigned((M_VALUE) downto 0) := (others => '0');
+        variable temp_exp       : unsigned((E_VALUE - 1) downto 0) := (others => '0');
+        variable num1_exp       : unsigned((E_VALUE - 1) downto 0) := (others => '0');
+        variable num2_exp       : unsigned((E_VALUE - 1) downto 0) := (others => '0');
+        variable temp_sign      : std_logic := '0';
+        variable num1_sign      : std_logic := '0';
+        variable num2_sign      : std_logic := '0';
 
         variable out_mantissa   : unsigned((M_VALUE + 1) downto 0);
         variable out_exp        : unsigned((E_VALUE) downto 0);
@@ -59,17 +59,27 @@ begin
             num1_sign := num2_sign;
             num2_sign := temp_sign;
         end if;
+         
+        -- Subtracts only if the signs are mistmatched between the two numbers
+        out_mantissa := (resize(num1_mantissa, M_VALUE + 2) - shift_right(num2_mantissa, to_integer(num1_exp - num2_exp))) when not (num1_sign = num2_sign) 
+                        else (resize(num1_mantissa, M_VALUE + 2) + shift_right(num2_mantissa, to_integer(num1_exp - num2_exp)));
+        out_exp := '0' & num1_exp;
 
-        out_mantissa := (num1_mantissa - shift_right(num2_mantissa, to_integer(num1_exp - num2_exp))) when not (num1_sign = num2_sign) else (num1_mantissa + shift_right(num2_mantissa, to_integer(num1_exp - num2_exp)));
-        out_exp := num1_exp;
-        if out_mantissa(M_VALUE) = '1' then
-            out_exp := out_exp + 1; 
+        -- Checks if there was a carry out to shift the mantissa properly and increment the exponent
+        if out_mantissa(M_VALUE + 1) = '1' then
+            out_exp := out_exp + 1;
+            out_mantissa := shift_right(out_mantissa, 1);
             if out_exp(E_VALUE) = '1' then
                 out_exp := (others => '1');
             end if;
+        -- Checks if there was a subtraction of the most significant bit and loops while decrementing the exponent
+        elsif out_mantissa(M_VALUE) = '0' then
+            while out_mantissa(M_VALUE) = '0' and (or out_exp) = '1' loop
+                out_exp := out_exp - 1;
+                out_mantissa := shift_left(out_mantissa, 1);
+            end loop;
         end if;
         out_sign := num1_sign;
         out_vec <= std_logic_vector(out_sign & out_exp((E_VALUE - 1) downto 0) & out_mantissa((M_VALUE - 1) downto 0));
-        wait;
     end process fp_addition;  
 end;
